@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "lastUpdated": "2025-01-27",
   "description": "Remote Access Tool Detection Signatures",
   "updateUrl": "https://raw.githubusercontent.com/domin0z/RemoteAccessScanner/main/signatures.json",
@@ -692,7 +692,7 @@
       "category": "Malware",
       "reason": "MALWARE - Remote Access Trojan",
       "isLegitimate": false,
-      "processes": ["Quasar", "Client"],
+      "processes": ["Quasar", "QuasarRAT"],
       "services": [],
       "ports": [4782],
       "installPaths": [
