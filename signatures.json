@@ -1,0 +1,884 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-01-27",
+  "description": "Remote Access Tool Detection Signatures",
+  "updateUrl": "https://raw.githubusercontent.com/domin0z/RemoteAccessScanner/main/signatures.json",
+  "signatures": [
+    {
+      "name": "AnyDesk",
+      "risk": "High",
+      "category": "Remote Desktop",
+      "reason": "Frequently used in tech support scams",
+      "isLegitimate": true,
+      "processes": ["AnyDesk", "AnyDesk.exe"],
+      "services": ["AnyDesk"],
+      "ports": [7070, 6568],
+      "installPaths": [
+        "%APPDATA%\\AnyDesk",
+        "%PROGRAMFILES%\\AnyDesk",
+        "%PROGRAMFILES(X86)%\\AnyDesk",
+        "%USERPROFILE%\\Downloads\\AnyDesk.exe"
+      ],
+      "registryKeys": [
+        "HKCU\\Software\\AnyDesk",
+        "HKLM\\Software\\AnyDesk",
+        "HKLM\\Software\\WOW6432Node\\AnyDesk"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Registry Run Key",
+          "path": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\AnyDesk"
+        },
+        {
+          "type": "Windows Service",
+          "name": "AnyDesk"
+        }
+      ],
+      "fileSignatures": ["philandro Software GmbH"],
+      "notes": "Portable version can run without installation. Check Downloads folder."
+    },
+    {
+      "name": "TeamViewer",
+      "risk": "Medium",
+      "category": "Remote Desktop",
+      "reason": "Legitimate tool often exploited by scammers",
+      "isLegitimate": true,
+      "processes": ["TeamViewer", "TeamViewer_Service", "tv_w32", "tv_x64"],
+      "services": ["TeamViewer"],
+      "ports": [5938, 5939, 5353],
+      "installPaths": [
+        "%PROGRAMFILES%\\TeamViewer",
+        "%PROGRAMFILES(X86)%\\TeamViewer",
+        "%APPDATA%\\TeamViewer",
+        "%USERPROFILE%\\Downloads\\TeamViewer*.exe"
+      ],
+      "registryKeys": [
+        "HKCU\\Software\\TeamViewer",
+        "HKLM\\Software\\TeamViewer",
+        "HKLM\\Software\\WOW6432Node\\TeamViewer"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Registry Run Key",
+          "path": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\TeamViewer"
+        },
+        {
+          "type": "Windows Service",
+          "name": "TeamViewer"
+        }
+      ],
+      "fileSignatures": ["TeamViewer Germany GmbH"],
+      "notes": "Very common legitimate use. Check if user intentionally installed it."
+    },
+    {
+      "name": "ScreenConnect",
+      "risk": "High",
+      "category": "Remote Desktop",
+      "reason": "ConnectWise Control - very common in tech support scams",
+      "isLegitimate": true,
+      "processes": ["ScreenConnect.ClientService", "ScreenConnect.WindowsClient", "ConnectWiseControl.Client"],
+      "services": ["ScreenConnect Client"],
+      "ports": [8040, 8041],
+      "installPaths": [
+        "%PROGRAMFILES%\\ScreenConnect Client*",
+        "%PROGRAMFILES(X86)%\\ScreenConnect Client*",
+        "%PROGRAMFILES%\\ConnectWise*",
+        "%LOCALAPPDATA%\\Apps\\ConnectWise*"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\ScreenConnect Client",
+        "HKLM\\Software\\WOW6432Node\\ScreenConnect Client"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "ScreenConnect Client"
+        }
+      ],
+      "fileSignatures": ["ConnectWise, LLC", "ScreenConnect Software"],
+      "notes": "Also known as ConnectWise Control. Very popular with scammers."
+    },
+    {
+      "name": "GoToAssist",
+      "risk": "High",
+      "category": "Remote Desktop",
+      "reason": "Very common in tech support scams",
+      "isLegitimate": true,
+      "processes": ["g2ax_user", "g2ax_service", "g2ax_comm_polling", "GoToAssist"],
+      "services": ["GoToAssist"],
+      "ports": [8200, 443],
+      "installPaths": [
+        "%PROGRAMFILES%\\GoToAssist*",
+        "%PROGRAMFILES(X86)%\\GoToAssist*",
+        "%LOCALAPPDATA%\\GoToAssist*",
+        "%APPDATA%\\GoToAssist*"
+      ],
+      "registryKeys": [
+        "HKCU\\Software\\GoToAssist",
+        "HKLM\\Software\\GoToAssist"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Registry Run Key",
+          "path": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\GoToAssist"
+        },
+        {
+          "type": "Windows Service",
+          "name": "GoToAssist"
+        }
+      ],
+      "fileSignatures": ["LogMeIn, Inc."],
+      "notes": "LogMeIn product. Often leaves remnants after uninstall."
+    },
+    {
+      "name": "Supremo",
+      "risk": "High",
+      "category": "Remote Desktop",
+      "reason": "Italian remote tool very popular with scammers",
+      "isLegitimate": true,
+      "processes": ["Supremo", "SupremoService", "SupremoHelper"],
+      "services": ["SupremoService"],
+      "ports": [443],
+      "installPaths": [
+        "%PROGRAMFILES%\\Supremo",
+        "%PROGRAMFILES(X86)%\\Supremo",
+        "%APPDATA%\\Supremo",
+        "%USERPROFILE%\\Downloads\\Supremo.exe"
+      ],
+      "registryKeys": [
+        "HKCU\\Software\\Supremo",
+        "HKLM\\Software\\Supremo"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Registry Run Key",
+          "path": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\Supremo"
+        },
+        {
+          "type": "Windows Service",
+          "name": "SupremoService"
+        }
+      ],
+      "fileSignatures": ["Nanosystems S.r.l."],
+      "notes": "Portable version common. Check for Supremo.exe in Downloads."
+    },
+    {
+      "name": "Splashtop",
+      "risk": "Medium",
+      "category": "Remote Desktop",
+      "reason": "Remote access tool - verify if legitimately installed",
+      "isLegitimate": true,
+      "processes": ["SRManager", "SRService", "SplashtopStreamer", "Splashtop", "SRStreamer", "splusvc", "SplashtopSOS", "SRFeature", "SplashtopBusiness", "SRUpdateService", "strwinclt"],
+      "services": ["SplashtopRemoteService", "SRService"],
+      "ports": [443, 6783, 6784],
+      "installPaths": [
+        "%PROGRAMFILES%\\Splashtop*",
+        "%PROGRAMFILES(X86)%\\Splashtop*",
+        "%LOCALAPPDATA%\\Splashtop*"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\Splashtop",
+        "HKCU\\Software\\Splashtop"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "SplashtopRemoteService"
+        },
+        {
+          "type": "Registry Run Key",
+          "path": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\Splashtop"
+        }
+      ],
+      "fileSignatures": ["Splashtop Inc."],
+      "notes": "Common in business environments. May be legitimately installed by IT."
+    },
+    {
+      "name": "LogMeIn",
+      "risk": "Medium",
+      "category": "Remote Desktop",
+      "reason": "Legitimate but sometimes abused by scammers",
+      "isLegitimate": true,
+      "processes": ["LogMeIn", "LMIGuardianSvc", "LogMeInSystray", "LMIRfsDriver"],
+      "services": ["LogMeIn", "LMIGuardianSvc"],
+      "ports": [443],
+      "installPaths": [
+        "%PROGRAMFILES%\\LogMeIn*",
+        "%PROGRAMFILES(X86)%\\LogMeIn*"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\LogMeIn"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "LogMeIn"
+        }
+      ],
+      "fileSignatures": ["LogMeIn, Inc."],
+      "notes": "Enterprise tool. Check with user if they have IT support contract."
+    },
+    {
+      "name": "UltraVNC",
+      "risk": "Medium",
+      "category": "VNC",
+      "reason": "VNC server allows remote desktop access",
+      "isLegitimate": true,
+      "processes": ["winvnc", "vncviewer", "uvnc_service"],
+      "services": ["uvnc_service"],
+      "ports": [5900, 5800],
+      "installPaths": [
+        "%PROGRAMFILES%\\UltraVNC",
+        "%PROGRAMFILES%\\uvnc*"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\ORL\\WinVNC3",
+        "HKLM\\Software\\UltraVNC"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "uvnc_service"
+        }
+      ],
+      "fileSignatures": ["UltraVNC"],
+      "notes": "Open source VNC. Check if password protected."
+    },
+    {
+      "name": "TightVNC",
+      "risk": "Medium",
+      "category": "VNC",
+      "reason": "VNC server allows remote desktop access",
+      "isLegitimate": true,
+      "processes": ["tvnserver", "tvnviewer"],
+      "services": ["tvnserver"],
+      "ports": [5900, 5800],
+      "installPaths": [
+        "%PROGRAMFILES%\\TightVNC",
+        "%PROGRAMFILES(X86)%\\TightVNC"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\TightVNC"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "tvnserver"
+        }
+      ],
+      "fileSignatures": ["GlavSoft LLC."],
+      "notes": "Open source VNC server."
+    },
+    {
+      "name": "RealVNC",
+      "risk": "Medium",
+      "category": "VNC",
+      "reason": "VNC server allows remote desktop access",
+      "isLegitimate": true,
+      "processes": ["vncserver", "vncviewer", "vncserverui"],
+      "services": ["vncserver"],
+      "ports": [5900, 5800],
+      "installPaths": [
+        "%PROGRAMFILES%\\RealVNC",
+        "%PROGRAMFILES(X86)%\\RealVNC"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\RealVNC"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "vncserver"
+        }
+      ],
+      "fileSignatures": ["RealVNC Ltd"],
+      "notes": "Commercial VNC product."
+    },
+    {
+      "name": "Ammyy Admin",
+      "risk": "High",
+      "category": "Remote Desktop",
+      "reason": "Known scammer favorite - rarely legitimate",
+      "isLegitimate": true,
+      "processes": ["AA_v3", "Ammyy"],
+      "services": [],
+      "ports": [443],
+      "installPaths": [
+        "%USERPROFILE%\\Downloads\\AA_v3*.exe",
+        "%APPDATA%\\Ammyy",
+        "%TEMP%\\AA_v3*.exe"
+      ],
+      "registryKeys": [
+        "HKCU\\Software\\Ammyy"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Registry Run Key",
+          "path": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\Ammyy"
+        }
+      ],
+      "fileSignatures": ["Ammyy LLC"],
+      "notes": "Portable. Almost always indicates scam. Very rarely legitimate use."
+    },
+    {
+      "name": "AeroAdmin",
+      "risk": "High",
+      "category": "Remote Desktop",
+      "reason": "Free remote tool commonly used in scams",
+      "isLegitimate": true,
+      "processes": ["AeroAdmin"],
+      "services": [],
+      "ports": [443],
+      "installPaths": [
+        "%USERPROFILE%\\Downloads\\AeroAdmin.exe",
+        "%APPDATA%\\AeroAdmin",
+        "%TEMP%\\AeroAdmin.exe"
+      ],
+      "registryKeys": [
+        "HKCU\\Software\\AeroAdmin"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Registry Run Key",
+          "path": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\AeroAdmin"
+        }
+      ],
+      "fileSignatures": ["AeroAdmin LLC"],
+      "notes": "Portable. Often found in Downloads or Temp folder."
+    },
+    {
+      "name": "RemotePC",
+      "risk": "Medium",
+      "category": "Remote Desktop",
+      "reason": "Remote access tool",
+      "isLegitimate": true,
+      "processes": ["RemotePC", "RPCService", "RemotePCService"],
+      "services": ["RemotePCService"],
+      "ports": [443],
+      "installPaths": [
+        "%PROGRAMFILES%\\RemotePC",
+        "%PROGRAMFILES(X86)%\\RemotePC"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\RemotePC"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "RemotePCService"
+        }
+      ],
+      "fileSignatures": ["iDrive Inc."],
+      "notes": "Business remote access tool."
+    },
+    {
+      "name": "Zoho Assist",
+      "risk": "Medium",
+      "category": "Remote Desktop",
+      "reason": "Remote support tool",
+      "isLegitimate": true,
+      "processes": ["ZohoMeeting", "ZAAgent", "ZohoURSService", "zaaborting"],
+      "services": ["ZohoAssist"],
+      "ports": [443],
+      "installPaths": [
+        "%PROGRAMFILES%\\ZohoMeeting*",
+        "%PROGRAMFILES(X86)%\\ZohoMeeting*",
+        "%LOCALAPPDATA%\\ZohoMeeting"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\Zoho",
+        "HKCU\\Software\\Zoho"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "ZohoAssist"
+        }
+      ],
+      "fileSignatures": ["Zoho Corporation"],
+      "notes": "Part of Zoho suite. May be legitimate IT support."
+    },
+    {
+      "name": "ISL Online",
+      "risk": "Medium",
+      "category": "Remote Desktop",
+      "reason": "Remote support tool",
+      "isLegitimate": true,
+      "processes": ["ISLLight", "ISLAlwaysOn"],
+      "services": ["ISLAlwaysOn"],
+      "ports": [443, 7615],
+      "installPaths": [
+        "%PROGRAMFILES%\\ISL Online*",
+        "%LOCALAPPDATA%\\ISL Online"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\ISL Online"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "ISLAlwaysOn"
+        }
+      ],
+      "fileSignatures": ["ISL Online"],
+      "notes": "European remote support tool."
+    },
+    {
+      "name": "RustDesk",
+      "risk": "Medium",
+      "category": "Remote Desktop",
+      "reason": "Open source remote desktop - growing in scam usage",
+      "isLegitimate": true,
+      "processes": ["rustdesk", "rustdesk-server"],
+      "services": ["rustdesk"],
+      "ports": [21115, 21116, 21117, 21118, 21119],
+      "installPaths": [
+        "%PROGRAMFILES%\\RustDesk",
+        "%APPDATA%\\RustDesk",
+        "%USERPROFILE%\\Downloads\\rustdesk*.exe"
+      ],
+      "registryKeys": [
+        "HKCU\\Software\\RustDesk"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Registry Run Key",
+          "path": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\RustDesk"
+        }
+      ],
+      "fileSignatures": [],
+      "notes": "Open source, gaining popularity with scammers due to free self-hosting."
+    },
+    {
+      "name": "DWService",
+      "risk": "Medium",
+      "category": "Remote Desktop",
+      "reason": "Open source remote agent",
+      "isLegitimate": true,
+      "processes": ["dwagent", "dwagsvc"],
+      "services": ["DWAgent"],
+      "ports": [443],
+      "installPaths": [
+        "%PROGRAMFILES%\\DWAgent",
+        "%PROGRAMDATA%\\DWAgent"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\DWAgent"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "DWAgent"
+        }
+      ],
+      "fileSignatures": [],
+      "notes": "Open source alternative to commercial tools."
+    },
+    {
+      "name": "NetSupport Manager",
+      "risk": "High",
+      "category": "RMM",
+      "reason": "Frequently abused by malware and scammers",
+      "isLegitimate": true,
+      "processes": ["client32", "PCICFGUI", "pcictlui"],
+      "services": ["Client32"],
+      "ports": [5405, 5421],
+      "installPaths": [
+        "%PROGRAMFILES%\\NetSupport*",
+        "%PROGRAMFILES(X86)%\\NetSupport*",
+        "%APPDATA%\\NetSupport*"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\NetSupport",
+        "HKLM\\Software\\WOW6432Node\\NetSupport"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "Client32"
+        },
+        {
+          "type": "Registry Run Key",
+          "path": "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\NetSupport"
+        }
+      ],
+      "fileSignatures": ["NetSupport Ltd"],
+      "notes": "Legitimate edu/enterprise tool but heavily abused by threat actors."
+    },
+    {
+      "name": "SimpleHelp",
+      "risk": "Medium",
+      "category": "RMM",
+      "reason": "RMM tool sometimes abused",
+      "isLegitimate": true,
+      "processes": ["Remote Access", "SimpleHelp"],
+      "services": ["Remote Access Service"],
+      "ports": [80, 443],
+      "installPaths": [
+        "%PROGRAMFILES%\\Remote Access",
+        "%PROGRAMFILES%\\SimpleHelp*"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\SimpleHelp"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "Remote Access Service"
+        }
+      ],
+      "fileSignatures": ["SimpleHelp Ltd"],
+      "notes": "MSP tool. Check if user has managed IT service."
+    },
+    {
+      "name": "Atera",
+      "risk": "Medium",
+      "category": "RMM",
+      "reason": "RMM tool for managed service providers",
+      "isLegitimate": true,
+      "processes": ["AteraAgent", "AgentPackageNetworkDiscovery"],
+      "services": ["AteraAgent"],
+      "ports": [443],
+      "installPaths": [
+        "%PROGRAMFILES%\\ATERA Networks",
+        "%PROGRAMDATA%\\ATERA Networks"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\ATERA Networks"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "AteraAgent"
+        }
+      ],
+      "fileSignatures": ["ATERA Networks Ltd"],
+      "notes": "MSP tool. Likely legitimate if user has IT support contract."
+    },
+    {
+      "name": "Action1",
+      "risk": "Medium",
+      "category": "RMM",
+      "reason": "RMM tool - verify legitimacy",
+      "isLegitimate": true,
+      "processes": ["action1_agent", "action1_remote"],
+      "services": ["Action1 Agent"],
+      "ports": [443],
+      "installPaths": [
+        "%PROGRAMFILES%\\Action1",
+        "%PROGRAMDATA%\\Action1"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\Action1"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "Action1 Agent"
+        }
+      ],
+      "fileSignatures": ["Action1 Corporation"],
+      "notes": "Cloud RMM platform."
+    },
+    {
+      "name": "MeshCentral",
+      "risk": "Medium",
+      "category": "RMM",
+      "reason": "Open source RMM - can be self-hosted by anyone",
+      "isLegitimate": true,
+      "processes": ["MeshAgent", "MeshCentral"],
+      "services": ["Mesh Agent"],
+      "ports": [443, 4433],
+      "installPaths": [
+        "%PROGRAMFILES%\\Mesh Agent",
+        "%PROGRAMFILES%\\Open Source\\MeshAgent"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\Open Source\\MeshAgent"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "Mesh Agent"
+        }
+      ],
+      "fileSignatures": [],
+      "notes": "Open source, free. Popular with scammers for self-hosting."
+    },
+    {
+      "name": "TacticalRMM",
+      "risk": "Medium",
+      "category": "RMM",
+      "reason": "Open source RMM platform",
+      "isLegitimate": true,
+      "processes": ["tacticalrmm", "tacticalagent"],
+      "services": ["TacticalAgent"],
+      "ports": [443],
+      "installPaths": [
+        "%PROGRAMFILES%\\TacticalAgent",
+        "%PROGRAMDATA%\\TacticalRMM"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\TacticalRMM"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "TacticalAgent"
+        }
+      ],
+      "fileSignatures": [],
+      "notes": "Open source RMM built on MeshCentral."
+    },
+    {
+      "name": "Hidden VNC",
+      "risk": "Critical",
+      "category": "Malware",
+      "reason": "MALWARE - Hidden VNC backdoor used by criminals",
+      "isLegitimate": false,
+      "processes": ["hVNC", "hvnc", "HiddenVNC"],
+      "services": [],
+      "ports": [5900, 5901],
+      "installPaths": [
+        "%APPDATA%\\*vnc*",
+        "%TEMP%\\*vnc*",
+        "%LOCALAPPDATA%\\Temp\\*vnc*"
+      ],
+      "registryKeys": [],
+      "autoStartMethods": [
+        {
+          "type": "Registry Run Key",
+          "path": "Various hidden locations"
+        },
+        {
+          "type": "Scheduled Task",
+          "name": "Hidden names"
+        }
+      ],
+      "fileSignatures": [],
+      "notes": "MALWARE. Creates hidden desktop session. User cannot see attacker activity."
+    },
+    {
+      "name": "AsyncRAT",
+      "risk": "Critical",
+      "category": "Malware",
+      "reason": "MALWARE - Remote Access Trojan",
+      "isLegitimate": false,
+      "processes": ["AsyncClient", "Async", "stub"],
+      "services": [],
+      "ports": [6606, 7707, 8808],
+      "installPaths": [
+        "%APPDATA%\\*",
+        "%TEMP%\\*",
+        "%LOCALAPPDATA%\\*"
+      ],
+      "registryKeys": [],
+      "autoStartMethods": [
+        {
+          "type": "Registry Run Key",
+          "path": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+        },
+        {
+          "type": "Scheduled Task",
+          "name": "Various names"
+        }
+      ],
+      "fileSignatures": [],
+      "notes": "MALWARE. Open source RAT commonly used by criminals."
+    },
+    {
+      "name": "QuasarRAT",
+      "risk": "Critical",
+      "category": "Malware",
+      "reason": "MALWARE - Remote Access Trojan",
+      "isLegitimate": false,
+      "processes": ["Quasar", "Client"],
+      "services": [],
+      "ports": [4782],
+      "installPaths": [
+        "%APPDATA%\\*",
+        "%TEMP%\\*"
+      ],
+      "registryKeys": [],
+      "autoStartMethods": [
+        {
+          "type": "Registry Run Key",
+          "path": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+        }
+      ],
+      "fileSignatures": [],
+      "notes": "MALWARE. Open source RAT."
+    },
+    {
+      "name": "NjRAT",
+      "risk": "Critical",
+      "category": "Malware",
+      "reason": "MALWARE - Remote Access Trojan",
+      "isLegitimate": false,
+      "processes": ["njRAT", "Bladabindi"],
+      "services": [],
+      "ports": [5552],
+      "installPaths": [
+        "%APPDATA%\\*",
+        "%TEMP%\\*"
+      ],
+      "registryKeys": [],
+      "autoStartMethods": [
+        {
+          "type": "Registry Run Key",
+          "path": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+        }
+      ],
+      "fileSignatures": [],
+      "notes": "MALWARE. Also known as Bladabindi."
+    },
+    {
+      "name": "DarkComet",
+      "risk": "Critical",
+      "category": "Malware",
+      "reason": "MALWARE - Remote Access Trojan",
+      "isLegitimate": false,
+      "processes": ["DarkComet", "DC_MainModule"],
+      "services": [],
+      "ports": [1604],
+      "installPaths": [
+        "%APPDATA%\\*",
+        "%TEMP%\\*"
+      ],
+      "registryKeys": [],
+      "autoStartMethods": [
+        {
+          "type": "Registry Run Key",
+          "path": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+        }
+      ],
+      "fileSignatures": [],
+      "notes": "MALWARE. Old but still seen in the wild."
+    },
+    {
+      "name": "GoToMyPC",
+      "risk": "Medium",
+      "category": "Remote Desktop",
+      "reason": "LogMeIn product sometimes used in scams",
+      "isLegitimate": true,
+      "processes": ["g2comm", "g2tray", "g2mainh"],
+      "services": ["GoToMyPC"],
+      "ports": [8200],
+      "installPaths": [
+        "%PROGRAMFILES%\\GoToMyPC",
+        "%PROGRAMFILES(X86)%\\Citrix\\GoToMyPC"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\Citrix\\GoToMyPC"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "GoToMyPC"
+        }
+      ],
+      "fileSignatures": ["LogMeIn, Inc.", "Citrix"],
+      "notes": "Now owned by LogMeIn/GoTo."
+    },
+    {
+      "name": "FleetDeck",
+      "risk": "Medium",
+      "category": "RMM",
+      "reason": "RMM tool",
+      "isLegitimate": true,
+      "processes": ["fleetdeck_agent", "fleetdeck"],
+      "services": ["FleetDeck Agent"],
+      "ports": [443],
+      "installPaths": [
+        "%PROGRAMFILES%\\FleetDeck",
+        "%PROGRAMDATA%\\FleetDeck"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\FleetDeck"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "FleetDeck Agent"
+        }
+      ],
+      "fileSignatures": [],
+      "notes": "MSP RMM tool."
+    },
+    {
+      "name": "Parsec",
+      "risk": "Low",
+      "category": "Remote Desktop",
+      "reason": "Gaming remote desktop - usually legitimate",
+      "isLegitimate": true,
+      "processes": ["parsecd", "pservice"],
+      "services": ["Parsec"],
+      "ports": [8000],
+      "installPaths": [
+        "%PROGRAMFILES%\\Parsec",
+        "%APPDATA%\\Parsec"
+      ],
+      "registryKeys": [
+        "HKCU\\Software\\Parsec"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Registry Run Key",
+          "path": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\Parsec"
+        }
+      ],
+      "fileSignatures": ["Parsec Cloud Inc."],
+      "notes": "Gaming-focused remote desktop. Usually legitimate."
+    },
+    {
+      "name": "Chrome Remote Desktop",
+      "risk": "Low",
+      "category": "Remote Desktop",
+      "reason": "Google remote desktop extension",
+      "isLegitimate": true,
+      "processes": ["remoting_host", "remoting_native_messaging_host"],
+      "services": ["Chrome Remote Desktop Service"],
+      "ports": [443],
+      "installPaths": [
+        "%PROGRAMFILES%\\Google\\Chrome Remote Desktop",
+        "%PROGRAMFILES(X86)%\\Google\\Chrome Remote Desktop"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\Google\\Chrome Remote Desktop"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "Chrome Remote Desktop Service"
+        }
+      ],
+      "fileSignatures": ["Google LLC"],
+      "notes": "Google product. Relatively safe but can still be abused."
+    },
+    {
+      "name": "BeyondTrust",
+      "risk": "Medium",
+      "category": "Remote Desktop",
+      "reason": "Enterprise remote support (formerly Bomgar)",
+      "isLegitimate": true,
+      "processes": ["bomgar-scc", "bomgar-rdp"],
+      "services": ["BeyondTrust Remote Support"],
+      "ports": [443],
+      "installPaths": [
+        "%PROGRAMFILES%\\Bomgar",
+        "%PROGRAMFILES%\\BeyondTrust"
+      ],
+      "registryKeys": [
+        "HKLM\\Software\\Bomgar"
+      ],
+      "autoStartMethods": [
+        {
+          "type": "Windows Service",
+          "name": "Bomgar Remote Support"
+        }
+      ],
+      "fileSignatures": ["BeyondTrust Corporation", "Bomgar Corporation"],
+      "notes": "Enterprise tool. Formerly known as Bomgar."
+    }
+  ]
+}
