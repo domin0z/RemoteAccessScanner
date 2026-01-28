@@ -46,6 +46,8 @@ function Load-Signatures {
             # Update version info
             $Script:CurrentVersion = $json.version
             $Script:SignaturesLastUpdated = $json.lastUpdated
+            $Script:SignaturesLastUpdatedTime = $json.lastUpdatedTime
+            $Script:SignaturesChangeLog = $json.changeLog
 
             # Convert JSON signatures to the format our scanner expects
             $Script:KnownRATs = @()
@@ -207,8 +209,14 @@ function Show-SignatureInfo {
     Write-Host "  Version: " -NoNewline -ForegroundColor Gray
     Write-Host $Script:CurrentVersion -ForegroundColor White
 
-    Write-Host "  Last Updated: " -NoNewline -ForegroundColor Gray
-    Write-Host $Script:SignaturesLastUpdated -ForegroundColor White
+    # Show full timestamp if available, otherwise just the date
+    if ($Script:SignaturesLastUpdatedTime) {
+        Write-Host "  Last Updated: " -NoNewline -ForegroundColor Gray
+        Write-Host $Script:SignaturesLastUpdatedTime -ForegroundColor White
+    } elseif ($Script:SignaturesLastUpdated) {
+        Write-Host "  Last Updated: " -NoNewline -ForegroundColor Gray
+        Write-Host $Script:SignaturesLastUpdated -ForegroundColor White
+    }
 
     Write-Host "  Total Signatures: " -NoNewline -ForegroundColor Gray
     Write-Host $Script:KnownRATs.Count -ForegroundColor White
@@ -237,6 +245,25 @@ function Show-SignatureInfo {
             default { "Gray" }
         }
         Write-Host "    $($risk.Name): $($risk.Count)" -ForegroundColor $color
+    }
+
+    # Show recent changes if available
+    if ($Script:SignaturesChangeLog -and $Script:SignaturesChangeLog.Count -gt 0) {
+        Write-Host ""
+        Write-Host "  Recent Changes:" -ForegroundColor Yellow
+
+        # Show last 5 changes
+        $recentChanges = $Script:SignaturesChangeLog | Select-Object -First 5
+        foreach ($change in $recentChanges) {
+            Write-Host "    v$($change.version) ($($change.date)):" -ForegroundColor Cyan
+            foreach ($item in $change.changes) {
+                Write-Host "      - $item" -ForegroundColor White
+            }
+        }
+
+        if ($Script:SignaturesChangeLog.Count -gt 5) {
+            Write-Host "    ... and $($Script:SignaturesChangeLog.Count - 5) more" -ForegroundColor Gray
+        }
     }
 }
 

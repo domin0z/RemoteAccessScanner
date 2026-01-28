@@ -114,6 +114,22 @@ $Script:SearchKeywords = @(
     "remote access tool abuse"
 )
 
+# FRST-specific keywords (for forum searches)
+$Script:FRSTKeywords = @(
+    "FRST remote access"
+    "FRST anydesk"
+    "FRST teamviewer"
+    "FRST screenconnect"
+    "FRST RAT"
+    "Farbar remote"
+    "FRST scam"
+    "tech support scam FRST"
+    "FRST connectwise"
+    "FRST rustdesk"
+    "FRST splashtop"
+    "FRST ultraviewer"
+)
+
 # Known tool names to track
 $Script:KnownToolNames = @(
     "AnyDesk", "TeamViewer", "ScreenConnect", "ConnectWise", "GoToAssist",
@@ -274,6 +290,170 @@ function Search-AllSources {
     }
 
     return $allResults
+}
+
+function Search-FRSTLogs {
+    <#
+    .SYNOPSIS
+        Searches Bleeping Computer and Malwarebytes forums for FRST log analyses
+        where experts identify remote access tools and malware
+    #>
+
+    Write-Host ""
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host "     FRST LOG ANALYSIS SEARCH" -ForegroundColor Cyan
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  Searching malware removal forums for FRST log analyses..." -ForegroundColor Gray
+    Write-Host "  Looking for expert-identified RATs and their signatures." -ForegroundColor Gray
+    Write-Host ""
+
+    $allResults = @()
+
+    # Search Bleeping Computer forums
+    Write-Host "  --- Bleeping Computer Forums ---" -ForegroundColor Yellow
+    foreach ($keyword in $Script:FRSTKeywords) {
+        Write-Host "    Searching: $keyword" -ForegroundColor Gray
+        try {
+            # BleepingComputer search URL
+            $searchUrl = "https://www.bleepingcomputer.com/forums/index.php?app=core&module=search&do=search&fromMainBar=1&q=$([uri]::EscapeDataString($keyword))"
+
+            # Also try Google site search as backup
+            $googleUrl = "https://www.google.com/search?q=site:bleepingcomputer.com/forums+$([uri]::EscapeDataString($keyword))+FRST"
+
+            $allResults += [PSCustomObject]@{
+                Keyword = $keyword
+                Source = "Bleeping Computer"
+                SearchUrl = $searchUrl
+                GoogleUrl = $googleUrl
+            }
+        } catch {
+            Write-Host "      Error: $_" -ForegroundColor Red
+        }
+        Start-Sleep -Milliseconds 500
+    }
+
+    # Search Malwarebytes forums
+    Write-Host ""
+    Write-Host "  --- Malwarebytes Forums ---" -ForegroundColor Yellow
+    foreach ($keyword in $Script:FRSTKeywords) {
+        Write-Host "    Searching: $keyword" -ForegroundColor Gray
+        try {
+            # Malwarebytes forum search
+            $searchUrl = "https://forums.malwarebytes.com/search/?q=$([uri]::EscapeDataString($keyword))"
+
+            $allResults += [PSCustomObject]@{
+                Keyword = $keyword
+                Source = "Malwarebytes Forums"
+                SearchUrl = $searchUrl
+                GoogleUrl = "https://www.google.com/search?q=site:forums.malwarebytes.com+$([uri]::EscapeDataString($keyword))+FRST"
+            }
+        } catch {
+            Write-Host "      Error: $_" -ForegroundColor Red
+        }
+        Start-Sleep -Milliseconds 500
+    }
+
+    # Search Reddit for FRST discussions
+    Write-Host ""
+    Write-Host "  --- Reddit FRST Discussions ---" -ForegroundColor Yellow
+    $redditSubs = @("techsupport", "antivirus", "malware")
+    foreach ($sub in $redditSubs) {
+        Write-Host "    Searching r/$sub for FRST..." -ForegroundColor Gray
+        $results = Search-Reddit -Subreddit $sub -Query "FRST remote access"
+        foreach ($r in $results) {
+            $allResults += [PSCustomObject]@{
+                Title = $r.Title
+                Url = $r.Url
+                Date = $r.Date
+                Source = "Reddit r/$sub"
+                Type = "Discussion"
+            }
+        }
+        Start-Sleep -Milliseconds 1500
+    }
+
+    # Display results and helpful links
+    Write-Host ""
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host "     FRST ANALYSIS RESOURCES" -ForegroundColor Cyan
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host ""
+
+    Write-Host "  HOW TO USE THESE RESOURCES:" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "  1. Open the links below in your browser" -ForegroundColor White
+    Write-Host "  2. Look for threads where users post FRST logs" -ForegroundColor White
+    Write-Host "  3. Read the EXPERT RESPONSES (from forum helpers)" -ForegroundColor White
+    Write-Host "  4. Look for file paths, registry keys, process names" -ForegroundColor White
+    Write-Host "     that experts identify as malicious" -ForegroundColor White
+    Write-Host ""
+
+    Write-Host "  WHAT TO LOOK FOR IN EXPERT RESPONSES:" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "  File Paths (for installPaths):" -ForegroundColor Cyan
+    Write-Host "    C:\Users\*\AppData\Roaming\[ToolName]" -ForegroundColor Gray
+    Write-Host "    C:\Users\*\AppData\Local\[ToolName]" -ForegroundColor Gray
+    Write-Host "    C:\ProgramData\[ToolName]" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  Registry Keys (for registryKeys):" -ForegroundColor Cyan
+    Write-Host "    HKLM\SOFTWARE\[ToolName]" -ForegroundColor Gray
+    Write-Host "    HKCU\SOFTWARE\[ToolName]" -ForegroundColor Gray
+    Write-Host "    Run keys with suspicious entries" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  Process/Service Names (for processes/services):" -ForegroundColor Cyan
+    Write-Host "    Unusual .exe names in FRST process list" -ForegroundColor Gray
+    Write-Host "    Services marked for removal by experts" -ForegroundColor Gray
+    Write-Host ""
+
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host "     QUICK SEARCH LINKS" -ForegroundColor Cyan
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host ""
+
+    Write-Host "  BLEEPING COMPUTER:" -ForegroundColor Yellow
+    Write-Host "  [1] FRST + Remote Access:" -ForegroundColor Cyan
+    Write-Host "      https://www.bleepingcomputer.com/forums/f/22/virus-trojan-spyware-and-malware-removal-help/" -ForegroundColor Gray
+    Write-Host "  [2] Search: site:bleepingcomputer.com FRST anydesk" -ForegroundColor Cyan
+    Write-Host ""
+
+    Write-Host "  MALWAREBYTES FORUMS:" -ForegroundColor Yellow
+    Write-Host "  [3] Malware Removal Help:" -ForegroundColor Cyan
+    Write-Host "      https://forums.malwarebytes.com/forum/7-malware-removal-help/" -ForegroundColor Gray
+    Write-Host "  [4] Search: site:forums.malwarebytes.com FRST remote" -ForegroundColor Cyan
+    Write-Host ""
+
+    Write-Host "  GOOGLE SEARCHES (paste in browser):" -ForegroundColor Yellow
+    Write-Host "  [5] site:bleepingcomputer.com FRST 'tech support scam'" -ForegroundColor Cyan
+    Write-Host "  [6] site:forums.malwarebytes.com FRST anydesk OR teamviewer" -ForegroundColor Cyan
+    Write-Host "  [7] site:bleepingcomputer.com FRST screenconnect connectwise" -ForegroundColor Cyan
+    Write-Host ""
+
+    # Show Reddit results if any
+    $redditResults = $allResults | Where-Object { $_.Source -like "Reddit*" -and $_.Title }
+    if ($redditResults.Count -gt 0) {
+        Write-Host "  ======================================================" -ForegroundColor Cyan
+        Write-Host "     REDDIT FRST DISCUSSIONS FOUND" -ForegroundColor Cyan
+        Write-Host "  ======================================================" -ForegroundColor Cyan
+        Write-Host ""
+
+        $counter = 0
+        foreach ($result in $redditResults | Select-Object -First 15) {
+            $counter++
+            Write-Host "  [$counter] $($result.Title)" -ForegroundColor Cyan
+            Write-Host "      $($result.Source) | $($result.Date)" -ForegroundColor Gray
+            Write-Host "      $($result.Url)" -ForegroundColor DarkGray
+            Write-Host ""
+        }
+    }
+
+    Write-Host ""
+    Write-Host "  ======================================================" -ForegroundColor Yellow
+    Write-Host "  TIP: When you find a new tool, use option [3] Add New" -ForegroundColor Yellow
+    Write-Host "  Signature to add it to your database!" -ForegroundColor Yellow
+    Write-Host "  ======================================================" -ForegroundColor Yellow
+
+    Write-Log "FRST log search completed - found $($redditResults.Count) Reddit discussions"
 }
 
 function Search-ForNewThreats {
@@ -745,14 +925,15 @@ function Show-MainMenu {
     Write-Host "  What would you like to do?" -ForegroundColor White
     Write-Host ""
     Write-Host "    [1] Scan for New Threats (search all sources)" -ForegroundColor Cyan
-    Write-Host "    [2] Research Specific Tool" -ForegroundColor Cyan
-    Write-Host "    [3] Add New Signature Manually" -ForegroundColor Cyan
-    Write-Host "    [4] View Current Signatures" -ForegroundColor Cyan
-    Write-Host "    [5] Push Updates to GitHub" -ForegroundColor Yellow
-    Write-Host "    [6] Exit" -ForegroundColor Cyan
+    Write-Host "    [2] Search FRST Log Analyses (BC & MB forums)" -ForegroundColor Yellow
+    Write-Host "    [3] Research Specific Tool" -ForegroundColor Cyan
+    Write-Host "    [4] Add New Signature Manually" -ForegroundColor Cyan
+    Write-Host "    [5] View Current Signatures" -ForegroundColor Cyan
+    Write-Host "    [6] Push Updates to GitHub" -ForegroundColor Yellow
+    Write-Host "    [7] Exit" -ForegroundColor Cyan
     Write-Host ""
 
-    $choice = Read-Host "  Enter choice (1-6)"
+    $choice = Read-Host "  Enter choice (1-7)"
 
     switch ($choice) {
         "1" {
@@ -763,34 +944,41 @@ function Show-MainMenu {
             Show-MainMenu
         }
         "2" {
-            Search-SpecificTool
+            Search-FRSTLogs
             Write-Host ""
             Write-Host "  Press any key to return to menu..." -ForegroundColor Gray
             $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
             Show-MainMenu
         }
         "3" {
-            Add-SignatureInteractive
+            Search-SpecificTool
             Write-Host ""
             Write-Host "  Press any key to return to menu..." -ForegroundColor Gray
             $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
             Show-MainMenu
         }
         "4" {
-            Show-CurrentSignatures
+            Add-SignatureInteractive
             Write-Host ""
             Write-Host "  Press any key to return to menu..." -ForegroundColor Gray
             $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
             Show-MainMenu
         }
         "5" {
-            Push-ToGitHub
+            Show-CurrentSignatures
             Write-Host ""
             Write-Host "  Press any key to return to menu..." -ForegroundColor Gray
             $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
             Show-MainMenu
         }
         "6" {
+            Push-ToGitHub
+            Write-Host ""
+            Write-Host "  Press any key to return to menu..." -ForegroundColor Gray
+            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Show-MainMenu
+        }
+        "7" {
             Write-Host ""
             Write-Host "  Goodbye!" -ForegroundColor Green
             exit
