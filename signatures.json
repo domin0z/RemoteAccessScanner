@@ -1,8 +1,26 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "lastUpdated": "2025-01-27",
+  "lastUpdatedTime": "2025-01-27 20:00:00",
   "description": "Remote Access Tool Detection Signatures",
   "updateUrl": "https://raw.githubusercontent.com/domin0z/RemoteAccessScanner/main/signatures.json",
+  "changeLog": [
+    {
+      "version": "1.0.2",
+      "date": "2025-01-27 20:00:00",
+      "changes": ["Added change tracking", "Added timestamp to updates"]
+    },
+    {
+      "version": "1.0.1",
+      "date": "2025-01-27",
+      "changes": ["Fixed QuasarRAT false positives - removed generic 'Client' match"]
+    },
+    {
+      "version": "1.0.0",
+      "date": "2025-01-27",
+      "changes": ["Initial release with 35 signatures"]
+    }
+  ],
   "signatures": [
     {
       "name": "AnyDesk",

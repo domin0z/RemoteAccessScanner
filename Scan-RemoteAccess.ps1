@@ -240,6 +240,457 @@ function Show-SignatureInfo {
     }
 }
 
+function Add-NewSignature {
+    <#
+    .SYNOPSIS
+        Allows user to manually add a new signature when they discover a new tool
+    #>
+
+    Write-Host ""
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host "     ADD NEW SIGNATURE" -ForegroundColor Cyan
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  Use this to add a new remote access tool you discovered." -ForegroundColor Gray
+    Write-Host "  Fill in as much info as you can - you can leave some blank." -ForegroundColor Gray
+    Write-Host ""
+
+    # Gather information
+    Write-Host "  --- BASIC INFO ---" -ForegroundColor Yellow
+    $name = Read-Host "  Tool Name (e.g., 'AnyDesk')"
+    if ([string]::IsNullOrWhiteSpace($name)) {
+        Write-Host "  Name is required. Cancelled." -ForegroundColor Red
+        return
+    }
+
+    # Check if already exists
+    $existing = $Script:KnownRATs | Where-Object { $_.Name -eq $name }
+    if ($existing) {
+        Write-Host "  '$name' already exists in signatures!" -ForegroundColor Yellow
+        $confirm = Read-Host "  Update existing entry? (Y/N)"
+        if ($confirm -notmatch "^[Yy]") {
+            return
+        }
+    }
+
+    Write-Host ""
+    Write-Host "  Risk Level:" -ForegroundColor Gray
+    Write-Host "    [1] Critical - Known malware/RAT" -ForegroundColor Red
+    Write-Host "    [2] High - Commonly used in scams" -ForegroundColor Red
+    Write-Host "    [3] Medium - Legitimate but often abused" -ForegroundColor Yellow
+    Write-Host "    [4] Low - Usually legitimate" -ForegroundColor Green
+    $riskChoice = Read-Host "  Select (1-4)"
+    $risk = switch ($riskChoice) {
+        "1" { "Critical" }
+        "2" { "High" }
+        "3" { "Medium" }
+        "4" { "Low" }
+        default { "Medium" }
+    }
+
+    Write-Host ""
+    Write-Host "  Category:" -ForegroundColor Gray
+    Write-Host "    [1] Remote Desktop (AnyDesk, TeamViewer type)" -ForegroundColor White
+    Write-Host "    [2] VNC (UltraVNC, TightVNC type)" -ForegroundColor White
+    Write-Host "    [3] RMM (Atera, ConnectWise type)" -ForegroundColor White
+    Write-Host "    [4] Malware (RATs, trojans)" -ForegroundColor White
+    $catChoice = Read-Host "  Select (1-4)"
+    $category = switch ($catChoice) {
+        "1" { "Remote Desktop" }
+        "2" { "VNC" }
+        "3" { "RMM" }
+        "4" { "Malware" }
+        default { "Remote Desktop" }
+    }
+
+    $reason = Read-Host "  Why is this suspicious? (e.g., 'Common in tech support scams')"
+    if ([string]::IsNullOrWhiteSpace($reason)) { $reason = "Remote access tool" }
+
+    Write-Host ""
+    Write-Host "  --- DETECTION INFO ---" -ForegroundColor Yellow
+    Write-Host "  (Separate multiple values with commas)" -ForegroundColor Gray
+    Write-Host ""
+
+    $processesInput = Read-Host "  Process names (e.g., 'AnyDesk,AnyDeskService')"
+    $processes = if ($processesInput) {
+        @($processesInput -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    } else { @() }
+
+    $servicesInput = Read-Host "  Windows service names (e.g., 'AnyDesk')"
+    $services = if ($servicesInput) {
+        @($servicesInput -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    } else { @() }
+
+    $portsInput = Read-Host "  Network ports (e.g., '7070,6568')"
+    $ports = if ($portsInput) {
+        @($portsInput -split ',' | ForEach-Object {
+            $p = $_.Trim()
+            if ($p -match '^\d+$') { [int]$p }
+        } | Where-Object { $_ })
+    } else { @() }
+
+    Write-Host ""
+    Write-Host "  --- INSTALL LOCATIONS ---" -ForegroundColor Yellow
+    Write-Host "  Use %APPDATA%, %PROGRAMFILES%, etc. for paths" -ForegroundColor Gray
+    Write-Host "  (Separate multiple paths with commas)" -ForegroundColor Gray
+    Write-Host ""
+
+    $pathsInput = Read-Host "  Install paths (e.g., '%APPDATA%\AnyDesk,%PROGRAMFILES%\AnyDesk')"
+    $installPaths = if ($pathsInput) {
+        @($pathsInput -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    } else { @() }
+
+    $regKeysInput = Read-Host "  Registry keys (e.g., 'HKCU\Software\AnyDesk')"
+    $registryKeys = if ($regKeysInput) {
+        @($regKeysInput -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    } else { @() }
+
+    $notes = Read-Host "  Additional notes (optional)"
+
+    # Create the signature object
+    $newSig = [ordered]@{
+        name = $name
+        risk = $risk
+        category = $category
+        reason = $reason
+        isLegitimate = ($risk -ne "Critical")
+        processes = $processes
+        services = $services
+        ports = $ports
+        installPaths = $installPaths
+        registryKeys = $registryKeys
+        autoStartMethods = @()
+        fileSignatures = @()
+        notes = $notes
+    }
+
+    # Show preview
+    Write-Host ""
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host "     SIGNATURE PREVIEW" -ForegroundColor Cyan
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  Name:       $name" -ForegroundColor White
+    Write-Host "  Risk:       $risk" -ForegroundColor $(if ($risk -eq "Critical" -or $risk -eq "High") { "Red" } elseif ($risk -eq "Medium") { "Yellow" } else { "Green" })
+    Write-Host "  Category:   $category" -ForegroundColor White
+    Write-Host "  Reason:     $reason" -ForegroundColor Gray
+    Write-Host "  Processes:  $($processes -join ', ')" -ForegroundColor Cyan
+    Write-Host "  Services:   $($services -join ', ')" -ForegroundColor Cyan
+    Write-Host "  Ports:      $($ports -join ', ')" -ForegroundColor Cyan
+    Write-Host "  Paths:      $($installPaths -join ', ')" -ForegroundColor Cyan
+    Write-Host "  Registry:   $($registryKeys -join ', ')" -ForegroundColor Cyan
+    Write-Host "  Notes:      $notes" -ForegroundColor Gray
+    Write-Host ""
+
+    $confirm = Read-Host "  Save this signature? (Y/N)"
+    if ($confirm -notmatch "^[Yy]") {
+        Write-Host "  Cancelled." -ForegroundColor Yellow
+        return
+    }
+
+    # Load current signatures.json
+    $sigPath = $Script:SignatureFile
+    if (-not (Test-Path $sigPath)) {
+        Write-Host "  Signatures file not found: $sigPath" -ForegroundColor Red
+        return
+    }
+
+    try {
+        $json = Get-Content $sigPath -Raw | ConvertFrom-Json
+
+        # Remove existing entry if updating
+        if ($existing) {
+            $json.signatures = @($json.signatures | Where-Object { $_.name -ne $name })
+        }
+
+        # Determine if adding or updating
+        $changeType = if ($existing) { "Updated" } else { "Added" }
+
+        # Add new signature
+        $json.signatures += [PSCustomObject]$newSig
+
+        # Bump version (patch increment)
+        if ($json.version -match '^(\d+)\.(\d+)\.(\d+)$') {
+            $major = $Matches[1]
+            $minor = $Matches[2]
+            $patch = [int]$Matches[3] + 1
+            $json.version = "$major.$minor.$patch"
+        }
+
+        # Update date and time
+        $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        $json.lastUpdated = Get-Date -Format "yyyy-MM-dd"
+        $json.lastUpdatedTime = $timestamp
+
+        # Add to change log
+        if (-not $json.changeLog) {
+            $json | Add-Member -NotePropertyName "changeLog" -NotePropertyValue @() -Force
+        }
+
+        $changeEntry = [PSCustomObject]@{
+            version = $json.version
+            date = $timestamp
+            changes = @("$changeType signature: $name [$risk]")
+        }
+
+        # Prepend new change to beginning of array
+        $json.changeLog = @($changeEntry) + @($json.changeLog)
+
+        # Save
+        $json | ConvertTo-Json -Depth 10 | Set-Content $sigPath -Encoding UTF8
+
+        Write-Host ""
+        Write-Host "  Signature saved successfully!" -ForegroundColor Green
+        Write-Host "  New version: $($json.version)" -ForegroundColor White
+        Write-Host "  Change: $changeType $name" -ForegroundColor Cyan
+        Write-Host "  Total signatures: $($json.signatures.Count)" -ForegroundColor White
+        Write-Host ""
+        Write-Host "  NOTE: Upload signatures.json to GitHub to share this update." -ForegroundColor Yellow
+        Write-Host "  Repo: https://github.com/domin0z/RemoteAccessScanner" -ForegroundColor Cyan
+
+        # Reload signatures
+        Load-Signatures | Out-Null
+
+    } catch {
+        Write-Host "  Error saving signature: $_" -ForegroundColor Red
+    }
+}
+
+function Compare-ScanLogs {
+    <#
+    .SYNOPSIS
+        Compares two scan logs to show what changed (for verifying cleanups)
+    #>
+
+    Write-Host ""
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host "     LOG COMPARISON TOOL" -ForegroundColor Cyan
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  Compare two scan logs to verify cleanup success or" -ForegroundColor Gray
+    Write-Host "  see what changed between scans on the same machine." -ForegroundColor Gray
+    Write-Host ""
+
+    # Get script directory for log files
+    $scriptDir = $PSScriptRoot
+    if (-not $scriptDir) { $scriptDir = Get-Location }
+
+    # Find all log files
+    $logFiles = Get-ChildItem -Path $scriptDir -Filter "RAT-Scan-Log_*.txt" -ErrorAction SilentlyContinue |
+                Sort-Object LastWriteTime -Descending
+
+    if ($logFiles.Count -lt 2) {
+        Write-Host "  Not enough log files found for comparison." -ForegroundColor Yellow
+        Write-Host "  Need at least 2 log files in: $scriptDir" -ForegroundColor Gray
+        Write-Host ""
+        Write-Host "  Run scans on a machine before and after cleanup," -ForegroundColor Gray
+        Write-Host "  then use this tool to compare the results." -ForegroundColor Gray
+        return
+    }
+
+    # Group logs by computer name
+    $logsByPC = @{}
+    foreach ($log in $logFiles) {
+        # Extract PC name from filename: RAT-Scan-Log_PCNAME_date.txt
+        if ($log.Name -match "RAT-Scan-Log_([^_]+)_") {
+            $pcName = $Matches[1]
+            if (-not $logsByPC.ContainsKey($pcName)) {
+                $logsByPC[$pcName] = @()
+            }
+            $logsByPC[$pcName] += $log
+        }
+    }
+
+    # Show available PCs
+    Write-Host "  Available computers with logs:" -ForegroundColor Yellow
+    Write-Host ""
+    $pcList = @($logsByPC.Keys)
+    for ($i = 0; $i -lt $pcList.Count; $i++) {
+        $pc = $pcList[$i]
+        $count = $logsByPC[$pc].Count
+        Write-Host "    [$($i + 1)] $pc ($count log files)" -ForegroundColor Cyan
+    }
+    Write-Host ""
+
+    $pcChoice = Read-Host "  Select computer (1-$($pcList.Count))"
+    $pcIndex = [int]$pcChoice - 1
+
+    if ($pcIndex -lt 0 -or $pcIndex -ge $pcList.Count) {
+        Write-Host "  Invalid selection." -ForegroundColor Red
+        return
+    }
+
+    $selectedPC = $pcList[$pcIndex]
+    $pcLogs = $logsByPC[$selectedPC] | Sort-Object LastWriteTime
+
+    if ($pcLogs.Count -lt 2) {
+        Write-Host "  Need at least 2 logs for $selectedPC to compare." -ForegroundColor Yellow
+        return
+    }
+
+    # Show available logs for this PC
+    Write-Host ""
+    Write-Host "  Log files for $selectedPC`:" -ForegroundColor Yellow
+    Write-Host ""
+    for ($i = 0; $i -lt $pcLogs.Count; $i++) {
+        $log = $pcLogs[$i]
+        $dateStr = $log.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
+        Write-Host "    [$($i + 1)] $dateStr - $($log.Name)" -ForegroundColor White
+    }
+
+    Write-Host ""
+    $oldChoice = Read-Host "  Select OLDER log (before cleanup)"
+    $newChoice = Read-Host "  Select NEWER log (after cleanup)"
+
+    $oldIndex = [int]$oldChoice - 1
+    $newIndex = [int]$newChoice - 1
+
+    if ($oldIndex -lt 0 -or $oldIndex -ge $pcLogs.Count -or
+        $newIndex -lt 0 -or $newIndex -ge $pcLogs.Count) {
+        Write-Host "  Invalid selection." -ForegroundColor Red
+        return
+    }
+
+    $oldLog = $pcLogs[$oldIndex]
+    $newLog = $pcLogs[$newIndex]
+
+    Write-Host ""
+    Write-Host "  Comparing logs..." -ForegroundColor Yellow
+    Write-Host "    OLD: $($oldLog.Name)" -ForegroundColor Gray
+    Write-Host "    NEW: $($newLog.Name)" -ForegroundColor Gray
+
+    # Parse findings from each log
+    $oldFindings = Parse-LogFindings -LogPath $oldLog.FullName
+    $newFindings = Parse-LogFindings -LogPath $newLog.FullName
+
+    # Compare findings
+    $removed = @()
+    $added = @()
+    $unchanged = @()
+
+    foreach ($finding in $oldFindings) {
+        $key = "$($finding.Name)|$($finding.Path)"
+        $stillExists = $newFindings | Where-Object { "$($_.Name)|$($_.Path)" -eq $key }
+        if ($stillExists) {
+            $unchanged += $finding
+        } else {
+            $removed += $finding
+        }
+    }
+
+    foreach ($finding in $newFindings) {
+        $key = "$($finding.Name)|$($finding.Path)"
+        $existedBefore = $oldFindings | Where-Object { "$($_.Name)|$($_.Path)" -eq $key }
+        if (-not $existedBefore) {
+            $added += $finding
+        }
+    }
+
+    # Display results
+    Write-Host ""
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host "     COMPARISON RESULTS: $selectedPC" -ForegroundColor Cyan
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  Old scan: $($oldFindings.Count) finding(s)" -ForegroundColor Gray
+    Write-Host "  New scan: $($newFindings.Count) finding(s)" -ForegroundColor Gray
+    Write-Host ""
+
+    # Summary
+    if ($removed.Count -gt 0) {
+        Write-Host "  REMOVED (cleanup successful): $($removed.Count) item(s)" -ForegroundColor Green
+    }
+    if ($added.Count -gt 0) {
+        Write-Host "  NEW ITEMS FOUND: $($added.Count) item(s)" -ForegroundColor Red
+    }
+    if ($unchanged.Count -gt 0) {
+        Write-Host "  UNCHANGED (still present): $($unchanged.Count) item(s)" -ForegroundColor Yellow
+    }
+
+    # Details - Removed items
+    if ($removed.Count -gt 0) {
+        Write-Host ""
+        Write-Host "  --- SUCCESSFULLY REMOVED ---" -ForegroundColor Green
+        $removedGrouped = $removed | Group-Object -Property Name
+        foreach ($group in $removedGrouped) {
+            Write-Host "    $($group.Name):" -ForegroundColor White
+            foreach ($item in $group.Group) {
+                Write-Host "      - $($item.Type): $($item.Path)" -ForegroundColor Gray
+            }
+        }
+    }
+
+    # Details - New items (concerning!)
+    if ($added.Count -gt 0) {
+        Write-Host ""
+        Write-Host "  --- NEW ITEMS (investigate these!) ---" -ForegroundColor Red
+        $addedGrouped = $added | Group-Object -Property Name
+        foreach ($group in $addedGrouped) {
+            Write-Host "    $($group.Name):" -ForegroundColor White
+            foreach ($item in $group.Group) {
+                Write-Host "      - $($item.Type): $($item.Path)" -ForegroundColor Yellow
+            }
+        }
+    }
+
+    # Details - Unchanged (may need more cleanup)
+    if ($unchanged.Count -gt 0) {
+        Write-Host ""
+        Write-Host "  --- STILL PRESENT (may need attention) ---" -ForegroundColor Yellow
+        $unchangedGrouped = $unchanged | Group-Object -Property Name
+        foreach ($group in $unchangedGrouped) {
+            Write-Host "    $($group.Name):" -ForegroundColor White
+            foreach ($item in $group.Group) {
+                Write-Host "      - $($item.Type): $($item.Path)" -ForegroundColor Gray
+            }
+        }
+    }
+
+    # Final verdict
+    Write-Host ""
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+    if ($removed.Count -gt 0 -and $unchanged.Count -eq 0 -and $added.Count -eq 0) {
+        Write-Host "  VERDICT: CLEANUP SUCCESSFUL!" -ForegroundColor Green
+        Write-Host "  All previously detected items have been removed." -ForegroundColor Green
+    } elseif ($unchanged.Count -gt 0) {
+        Write-Host "  VERDICT: CLEANUP INCOMPLETE" -ForegroundColor Yellow
+        Write-Host "  Some items are still present - may need manual removal." -ForegroundColor Yellow
+    } elseif ($added.Count -gt 0) {
+        Write-Host "  VERDICT: NEW THREATS DETECTED" -ForegroundColor Red
+        Write-Host "  New remote access tools found since last scan!" -ForegroundColor Red
+    } else {
+        Write-Host "  VERDICT: NO CHANGE" -ForegroundColor Gray
+        Write-Host "  Both scans show the same results." -ForegroundColor Gray
+    }
+    Write-Host "  ======================================================" -ForegroundColor Cyan
+}
+
+function Parse-LogFindings {
+    param([string]$LogPath)
+
+    $findings = @()
+
+    try {
+        $content = Get-Content $LogPath -ErrorAction Stop
+
+        foreach ($line in $content) {
+            # Match lines like: [timestamp] FOUND: Name | Risk: X | Type: Y | Path: Z
+            if ($line -match "FOUND:\s*([^|]+)\s*\|\s*Risk:\s*([^|]+)\s*\|\s*Type:\s*([^|]+)\s*\|\s*Path:\s*(.+)$") {
+                $findings += [PSCustomObject]@{
+                    Name = $Matches[1].Trim()
+                    Risk = $Matches[2].Trim()
+                    Type = $Matches[3].Trim()
+                    Path = $Matches[4].Trim()
+                }
+            }
+        }
+    } catch {
+        Write-Host "  Error reading log: $_" -ForegroundColor Red
+    }
+
+    return $findings
+}
+
 # ============================================================================
 # CONFIGURATION - Known Remote Access Software Signatures (FALLBACK)
 # ============================================================================
@@ -532,16 +983,22 @@ function Initialize-Scan {
     $scriptDir = $PSScriptRoot
     if (-not $scriptDir) { $scriptDir = Split-Path -Parent $MyInvocation.PSCommandPath }
     if (-not $scriptDir) { $scriptDir = Get-Location }
+
+    # Include PC name in filename for easy identification
+    $pcName = $env:COMPUTERNAME
     $dateStr = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-    $Script:LogFile = Join-Path $scriptDir "RAT-Scan-Log-$dateStr.txt"
+    $Script:LogFile = Join-Path $scriptDir "RAT-Scan-Log_$pcName`_$dateStr.txt"
 
     # Create log file immediately to confirm it works
     $header = @"
 ==========================================
-Remote Access Scan Started
-Date: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-Computer: $env:COMPUTERNAME
-User: $env:USERNAME
+REMOTE ACCESS SCAN LOG
+==========================================
+Computer Name: $env:COMPUTERNAME
+User Account:  $env:USERNAME
+Scan Date:     $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+Scanner Ver:   $Script:CurrentVersion
+Signatures:    $($Script:KnownRATs.Count) tools in database
 ==========================================
 
 "@
@@ -1317,10 +1774,12 @@ function Show-MainMenu {
     Write-Host "    [3] View Last Scan Results" -ForegroundColor Cyan
     Write-Host "    [4] Update Signatures (from GitHub)" -ForegroundColor Yellow
     Write-Host "    [5] Signature Database Info" -ForegroundColor Cyan
-    Write-Host "    [6] Exit" -ForegroundColor Cyan
+    Write-Host "    [6] Compare Scan Logs (verify cleanup)" -ForegroundColor Green
+    Write-Host "    [7] Add New Signature (found something new?)" -ForegroundColor Magenta
+    Write-Host "    [8] Exit" -ForegroundColor Cyan
     Write-Host ""
 
-    $choice = Read-Host "  Enter choice (1-6)"
+    $choice = Read-Host "  Enter choice (1-8)"
 
     switch ($choice) {
         "1" {
@@ -1367,6 +1826,20 @@ function Show-MainMenu {
             Show-MainMenu
         }
         "6" {
+            Compare-ScanLogs
+            Write-Host ""
+            Write-Host "  Press any key to return to menu..." -ForegroundColor Gray
+            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Show-MainMenu
+        }
+        "7" {
+            Add-NewSignature
+            Write-Host ""
+            Write-Host "  Press any key to return to menu..." -ForegroundColor Gray
+            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Show-MainMenu
+        }
+        "8" {
             Write-Host ""
             Write-Host "  Goodbye! Stay safe out there." -ForegroundColor Green
             Write-Host ""
@@ -1374,7 +1847,7 @@ function Show-MainMenu {
         }
         default {
             Write-Host ""
-            Write-Host "  Invalid choice. Please enter 1-6." -ForegroundColor Red
+            Write-Host "  Invalid choice. Please enter 1-8." -ForegroundColor Red
             Start-Sleep -Seconds 1
             Show-MainMenu
         }
